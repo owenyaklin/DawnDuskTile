@@ -53,6 +53,8 @@ dependencies {
     implementation(libs.datastore.core.android)
     implementation(libs.datastore.preferences.core)
     implementation(libs.tiles.tooling.preview)
+    implementation(libs.tiles.tooling)
+    implementation(libs.androidx.tiles.tooling.preview)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
