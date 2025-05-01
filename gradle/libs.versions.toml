@@ -13,6 +13,7 @@ activityCompose = "1.10.1"
 coreSplashscreen = "1.0.1"
 datastoreCoreAndroid = "1.1.5"
 datastorePreferencesCore = "1.2.0-alpha01"
+tilesToolingPreview = "1.4.1"
 
 [libraries]
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
@@ -36,6 +37,7 @@ activity-compose = { group = "androidx.activity", name = "activity-compose", ver
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 datastore-core-android = { group = "androidx.datastore", name = "datastore-core-android", version.ref = "datastoreCoreAndroid" }
 datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastorePreferencesCore" }
+tiles-tooling-preview = { group = "androidx.wear.tiles", name = "tiles-tooling-preview", version.ref = "tilesToolingPreview" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
