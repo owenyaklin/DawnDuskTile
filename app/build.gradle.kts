@@ -50,6 +50,8 @@ dependencies {
     implementation(libs.wear.tooling.preview)
     implementation(libs.activity.compose)
     implementation(libs.core.splashscreen)
+    implementation(libs.datastore.core.android)
+    implementation(libs.datastore.preferences.core)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
@@ -57,4 +59,7 @@ dependencies {
     implementation(libs.google.horologist.compose.tools)
     implementation(libs.horologist.tiles)
     implementation(libs.coil.compose)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.guava)
+    implementation(libs.datastore.preferences)
 }
