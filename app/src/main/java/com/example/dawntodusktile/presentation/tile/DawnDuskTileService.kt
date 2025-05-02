@@ -19,19 +19,21 @@ private const val RESOURCES_VERSION = "0"
 @OptIn(ExperimentalHorologistApi::class)
 class DawnDuskTileService : SuspendingTileService() {
     private lateinit var repo: DawnDuskRepo
+    private lateinit var renderer: DawnDuskTileRenderer
     private lateinit var tileStateFlow: StateFlow<DawnDuskTileState?>
 
     override fun onCreate() {
         super.onCreate()
         repo = DawnDuskRepo(this)
+        renderer = DawnDuskTileRenderer(this)
         tileStateFlow = repo.getInitialValues().map { dawnDuskDates -> DawnDuskTileState(dawnDuskDates) }.stateIn(
             lifecycleScope, started = SharingStarted.WhileSubscribed(5000), initialValue = null
         )
     }
 
     override suspend fun tileRequest(requestParams: RequestBuilders.TileRequest): TileBuilders.Tile {
-        //val tileState = latestTileState()
-        TODO("Not yet implemented")
+        val tileState = latestTileState()
+        return renderer.renderTimeline(tileState, requestParams)
     }
 
     private suspend fun latestTileState(): DawnDuskTileState {
@@ -39,6 +41,7 @@ class DawnDuskTileService : SuspendingTileService() {
 
         if (tileState.dawnDuskDates.isEmpty()) {
             refreshData()
+            tileState = tileStateFlow.filterNotNull().first()
         }
         return tileState
     }
