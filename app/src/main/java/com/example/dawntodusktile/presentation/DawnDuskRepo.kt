@@ -34,18 +34,9 @@ class DawnDuskRepo(private val context: Context) {
     companion object {
         val currentDates = listOf(
             DateDawnDusk(
-                date = "2025-04-30",
-                sunrise = "05:45:20",
-                sunset = "19:56:15",
-                dawn = "05:13:25",
-                dusk = "20:28:10"
-            ),
-            DateDawnDusk(
-                date = "2025-05-01",
-                sunrise = "05:43:53",
-                sunset = "19:57:29",
-                dawn = "05:11:51",
-                dusk = "20:29:31"
+                date = "2026-05-01", sunrise = "05:59:15", sunset = "19:56:30", dawn = "05:27:54", dusk = "20:27:51"
+            ), DateDawnDusk(
+                date = "2026-05-02", sunrise = "06:00:26", sunset = "19:54:54", dawn = "05:29:11", dusk = "20:26:09"
             )
         )
     }

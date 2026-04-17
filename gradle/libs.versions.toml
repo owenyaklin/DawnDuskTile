@@ -1,8 +1,8 @@
 [versions]
-agp = "8.8.0"
+agp = "9.0.1"
 coilCompose = "2.6.0"
 horologistVersion = "0.6.9"
-kotlin = "2.0.0"
+kotlin = "2.2.10"
 kotlinxCoroutinesAndroid = "1.8.0"
 playServicesWearable = "18.0.0"
 composeBom = "2024.04.01"
@@ -16,6 +16,7 @@ datastorePreferencesCore = "1.2.0-alpha01"
 tilesToolingPreview = "1.4.1"
 tilesTooling = "1.5.0-beta01"
 tilesToolingPreviewVersion = "1.5.0-beta01"
+playServicesLocation = "21.3.0"
 
 [libraries]
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
@@ -42,6 +43,7 @@ datastore-preferences-core = { group = "androidx.datastore", name = "datastore-p
 tiles-tooling-preview = { group = "androidx.wear.tiles", name = "tiles-tooling-preview", version.ref = "tilesToolingPreview" }
 tiles-tooling = { group = "androidx.wear.tiles", name = "tiles-tooling", version.ref = "tilesTooling" }
 androidx-tiles-tooling-preview = { group = "androidx.wear.tiles", name = "tiles-tooling-preview", version.ref = "tilesToolingPreviewVersion" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
