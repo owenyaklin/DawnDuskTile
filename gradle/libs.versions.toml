@@ -1,15 +1,15 @@
 [versions]
-agp = "8.8.0"
-coilCompose = "2.6.0"
-horologistVersion = "0.6.9"
-kotlin = "2.0.0"
-playServicesWearable = "18.0.0"
-composeBom = "2024.04.01"
-composeMaterial = "1.2.1"
-composeFoundation = "1.2.1"
+agp = "9.1.1"
+coilCompose = "2.7.0"
+horologistVersion = "0.7.15"
+kotlin = "2.3.20"
+playServicesWearable = "19.0.0"
+composeBom = "2026.03.01"
+composeMaterial = "1.6.1"
+composeFoundation = "1.6.1"
 wearToolingPreview = "1.0.0"
-activityCompose = "1.10.1"
-coreSplashscreen = "1.0.1"
+activityCompose = "1.13.0"
+coreSplashscreen = "1.2.0"
 
 [libraries]
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
@@ -31,6 +31,4 @@ core-splashscreen = { group = "androidx.core", name = "core-splashscreen", versi
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
