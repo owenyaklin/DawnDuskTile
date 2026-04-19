@@ -6,7 +6,6 @@
     <uses-feature android:name="android.hardware.type.watch" />
 
     <application
-        android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -34,6 +33,24 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".tile.DawnDuskTileService"
+            android:description="@string/tile_description"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_DISPLAYER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_DISPLAYER" />
+            </intent-filter>
+
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW_TIME_MILLIS"
+                android:value="0" />
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/splash_icon" />
+        </service>
     </application>
 
 </manifest>
