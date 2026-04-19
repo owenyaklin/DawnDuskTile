@@ -10,6 +10,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.dawntodusktile.presentation.DateDawnDusk.Companion.toDateDawnDusk
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.LocalDate
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "dateDawnDusk")
 
@@ -32,12 +33,22 @@ class DawnDuskRepo(private val context: Context) {
     }
 
     companion object {
-        val currentDates = listOf(
-            DateDawnDusk(
-                date = "2026-05-01", sunrise = "05:59:15", sunset = "19:56:30", dawn = "05:27:54", dusk = "20:27:51"
-            ), DateDawnDusk(
-                date = "2026-05-02", sunrise = "06:00:26", sunset = "19:54:54", dawn = "05:29:11", dusk = "20:26:09"
+        val currentDates: List<DateDawnDusk>
+            get() = listOf(
+                DateDawnDusk(
+                    date = LocalDate.now().toString(),
+                    sunrise = "05:59:15",
+                    sunset = "19:56:30",
+                    dawn = "05:27:54",
+                    dusk = "20:27:51"
+                ),
+                DateDawnDusk(
+                    date = LocalDate.now().plusDays(1).toString(),
+                    sunrise = "06:00:26",
+                    sunset = "19:54:54",
+                    dawn = "05:29:11",
+                    dusk = "20:26:09"
+                )
             )
-        )
     }
 }
