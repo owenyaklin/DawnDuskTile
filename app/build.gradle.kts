@@ -63,4 +63,6 @@ dependencies {
     implementation(libs.google.horologist.compose.tools)
     implementation(libs.horologist.tiles)
     implementation(libs.coil.compose)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.play.services.location)
 }

@@ -10,6 +10,8 @@ composeFoundation = "1.6.1"
 wearToolingPreview = "1.0.0"
 activityCompose = "1.13.0"
 coreSplashscreen = "1.2.0"
+datastore = "1.2.1"
+playServicesLocation = "21.3.0"
 
 [libraries]
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
@@ -28,6 +30,8 @@ compose-foundation = { group = "androidx.wear.compose", name = "compose-foundati
 wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
