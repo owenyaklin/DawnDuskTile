@@ -1,13 +1,20 @@
 /* While this template provides a good starting point for using Wear Compose, you can always
  * take a look at https://github.com/android/wear-os-samples/tree/main/ComposeStarter to find the
- * most up to date changes to the libraries and their usages.
+ * most up-to-date changes to the libraries and their usages.
  */
 
 package com.example.dawntodusktile.presentation
 
+import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -35,6 +42,31 @@ class MainActivity : ComponentActivity() {
         setTheme(android.R.style.Theme_DeviceDefault)
 
         setContent {
+            val permissionLauncher = rememberLauncherForActivityResult(
+                ActivityResultContracts.RequestMultiplePermissions()
+            ) { permissions ->
+                val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+                val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+                if (fineGranted || coarseGranted) {
+                    // On Wear OS 4+ (minSdk 34), we must guide the user to settings 
+                    // to select "Allow all the time" for background access.
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", packageName, null)
+                    }
+                    startActivity(intent)
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                permissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+
             WearApp("Android")
         }
     }
