@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.wear.protolayout.ResourceBuilders
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
+import androidx.wear.tiles.TileService
 import com.example.dawntodusktile.presentation.DawnDuskRepo
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -25,7 +26,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 import java.time.LocalDate
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.milliseconds
@@ -44,7 +49,9 @@ class DawnDuskTileService : SuspendingTileService() {
         Log.d(TAG, "onCreate")
         repo = DawnDuskRepo(this)
         renderer = DawnDuskTileRenderer(this)
-        tileStateFlow = repo.getInitialValues().map { dawnDuskDates -> DawnDuskTileState(dawnDuskDates) }.stateIn(
+        tileStateFlow = repo.getInitialValues().map { data ->
+            DawnDuskTileState(data.dates, data.locationName, data.latitude, data.longitude)
+        }.stateIn(
             lifecycleScope, started = SharingStarted.Eagerly, initialValue = null
         )
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -111,7 +118,7 @@ class DawnDuskTileService : SuspendingTileService() {
                     continuation.resume(null)
                 }
             }
-        } catch (e: Exception) {
+        } catch (ignore: Exception) {
             null
         }
 
@@ -145,10 +152,45 @@ class DawnDuskTileService : SuspendingTileService() {
         }
     }
 
+    private suspend fun fetchLocationName(location: Location): String? = withContext(Dispatchers.IO) {
+        try {
+            val urlString = "https://geocoding.geo.census.gov/geocoder/geographies/coordinates?x=${location.longitude}&y=${location.latitude}&format=json&benchmark=2020&vintage=2020&layers=County+Subdivisions"
+            Log.d(TAG, "Fetching location name from: $urlString")
+            val url = URL(urlString)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+            connection.connect()
+
+            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                val response = connection.inputStream.bufferedReader().use { it.readText() }
+                val json = JSONObject(response)
+                val result = json.getJSONObject("result")
+                val geographies = result.getJSONObject("geographies")
+                val countySubdivisions = geographies.getJSONArray("County Subdivisions")
+                if (countySubdivisions.length() > 0) {
+                    val basename = countySubdivisions.getJSONObject(0).getString("BASENAME")
+                    Log.d(TAG, "Location name fetched: $basename")
+                    return@withContext basename
+                }
+            } else {
+                Log.e(TAG, "Geocoding API error: ${connection.responseCode}")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch location name", e)
+        }
+        null
+    }
+
     private suspend fun refreshData(location: Location) {
         Log.d(TAG, "Refreshing data for location: ${location.latitude}, ${location.longitude}")
-        // For now, we still use mock dates, but we acknowledge the location.
-        repo.updateDateDawnDusk(DawnDuskRepo.currentDates)
+        val locationName = fetchLocationName(location) ?: "Unknown Location"
+        // For now, we still use mock dates but we acknowledge the location.
+        repo.updateDateDawnDusk(
+            DawnDuskRepo.currentDates,
+            locationName,
+            location.latitude,
+            location.longitude
+        )
     }
 
     override suspend fun resourcesRequest(

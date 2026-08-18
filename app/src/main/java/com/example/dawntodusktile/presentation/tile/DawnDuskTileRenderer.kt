@@ -48,7 +48,7 @@ private fun dawnDuskTileLayout(
         LayoutElementBuilders.Box.Builder().addContent(
             LayoutElementBuilders.Text.Builder().setText(currentDate).build()
         ).build()
-    ).setPrimaryLabelTextContent(LayoutElementBuilders.Text.Builder().setText("Primary Label").build())
+    ).setPrimaryLabelTextContent(LayoutElementBuilders.Text.Builder().setText(state.locationName).build())
         .setEdgeContent(CircularProgressIndicator.Builder().setStartAngle(-90F).setEndAngle(90F).setProgress(0.6F).build())
         .build()
 }
@@ -60,7 +60,7 @@ fun messagingTileLayoutPreview(context: Context): TilePreviewData {
 
     return TilePreviewData { request ->
         DawnDuskTileRenderer(context).renderTimeline(
-            DawnDuskTileState(currentDates), request
+            DawnDuskTileState(currentDates, "Mock Location"), request
         )
     }
 
