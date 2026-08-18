@@ -50,7 +50,13 @@ class DawnDuskTileService : SuspendingTileService() {
         repo = DawnDuskRepo(this)
         renderer = DawnDuskTileRenderer(this)
         tileStateFlow = repo.getInitialValues().map { data ->
-            DawnDuskTileState(data.dates, data.locationName, data.latitude, data.longitude)
+            DawnDuskTileState(
+                data.dates,
+                data.locationName,
+                data.latitude,
+                data.longitude,
+                data.lastUpdatedMillis
+            )
         }.stateIn(
             lifecycleScope, started = SharingStarted.Eagerly, initialValue = null
         )
@@ -65,6 +71,7 @@ class DawnDuskTileService : SuspendingTileService() {
 
     private suspend fun latestTileState(): DawnDuskTileState {
         Log.d(TAG, "latestTileState")
+        val now = System.currentTimeMillis()
         val today = LocalDate.now().toString()
 
         // 1. Try to get current state from flow quickly.
@@ -74,11 +81,20 @@ class DawnDuskTileService : SuspendingTileService() {
 
         val result = tileState ?: DawnDuskTileState(emptyList())
 
-        // 2. Check if we need to refresh: missing or today's data is not the middle element
-        val isStale = result.dawnDuskDates.size < 3 || result.dawnDuskDates[1].date != today
+        // 2. Check if we need to refresh
+        // Date check: We want today's data to be the middle element of our 3-day window
+        val isDateStale = result.dawnDuskDates.size < 3 || result.dawnDuskDates[1].date != today
+        
+        // Time check: Data is more than 4 hours old
+        val isTimeStale = (now - result.lastUpdatedMillis) > 4 * 60 * 60 * 1000L
+        
+        // Distance check: Check if system's cached location is > 50km from stored location
+        val isDistanceStale = result.lastUpdatedMillis > 0 && checkDistanceStale(result.latitude, result.longitude)
+
+        val isStale = isDateStale || isTimeStale || isDistanceStale
 
         if (isStale) {
-            Log.d(TAG, "Data is missing or stale. Triggering background refresh...")
+            Log.d(TAG, "Data is stale (date=$isDateStale, time=$isTimeStale, dist=$isDistanceStale). Triggering background refresh...")
             // 3. Trigger refresh in background to avoid blocking the tile response.
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
@@ -97,6 +113,38 @@ class DawnDuskTileService : SuspendingTileService() {
         }
 
         return result
+    }
+
+    private suspend fun checkDistanceStale(storedLat: Double, storedLng: Double): Boolean {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return false
+        }
+
+        return try {
+            val lastLocation = suspendCancellableCoroutine<Location?> { continuation ->
+                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    continuation.resume(location)
+                }.addOnFailureListener {
+                    continuation.resume(null)
+                }
+            }
+            
+            if (lastLocation != null) {
+                val results = FloatArray(1)
+                Location.distanceBetween(storedLat, storedLng, lastLocation.latitude, lastLocation.longitude, results)
+                val distanceInMeters = results[0]
+                Log.d(TAG, "Distance from stored location: ${distanceInMeters / 1000}km")
+                distanceInMeters > 50_000 // 50km threshold
+            } else {
+                false
+            }
+        } catch (ignore: Exception) {
+            false
+        }
     }
 
     private suspend fun fetchLocation(): Location? {
@@ -232,7 +280,8 @@ class DawnDuskTileService : SuspendingTileService() {
             dawnDuskDates,
             locationName,
             location.latitude,
-            location.longitude
+            location.longitude,
+            System.currentTimeMillis()
         )
     }
 

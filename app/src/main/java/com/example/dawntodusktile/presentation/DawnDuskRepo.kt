@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.dawntodusktile.presentation.DateDawnDusk.Companion.toDateDawnDusk
@@ -20,6 +21,7 @@ class DawnDuskRepo(private val context: Context) {
     private val LOCATION_NAME_KEY = stringPreferencesKey("location_name")
     private val LATITUDE_KEY = doublePreferencesKey("latitude")
     private val LONGITUDE_KEY = doublePreferencesKey("longitude")
+    private val LAST_UPDATED_KEY = longPreferencesKey("last_updated")
 
     fun getInitialValues(): Flow<DawnDuskData> = context.dataStore.data.map { preferences ->
         val count = preferences[COUNT_KEY] ?: 0
@@ -29,14 +31,16 @@ class DawnDuskRepo(private val context: Context) {
         val locationName = preferences[LOCATION_NAME_KEY] ?: ""
         val latitude = preferences[LATITUDE_KEY] ?: 0.0
         val longitude = preferences[LONGITUDE_KEY] ?: 0.0
-        DawnDuskData(dates, locationName, latitude, longitude)
+        val lastUpdated = preferences[LAST_UPDATED_KEY] ?: 0L
+        DawnDuskData(dates, locationName, latitude, longitude, lastUpdated)
     }
 
     suspend fun updateDateDawnDusk(
         dawnDuskDates: List<DateDawnDusk>,
         locationName: String,
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        lastUpdatedMillis: Long
     ) {
         context.dataStore.edit {
             it.clear()
@@ -47,6 +51,7 @@ class DawnDuskRepo(private val context: Context) {
             it[LOCATION_NAME_KEY] = locationName
             it[LATITUDE_KEY] = latitude
             it[LONGITUDE_KEY] = longitude
+            it[LAST_UPDATED_KEY] = lastUpdatedMillis
         }
     }
 
