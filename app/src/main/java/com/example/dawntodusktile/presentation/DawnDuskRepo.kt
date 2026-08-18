@@ -54,6 +54,13 @@ class DawnDuskRepo(private val context: Context) {
         val currentDates: List<DateDawnDusk>
             get() = listOf(
                 DateDawnDusk(
+                    date = LocalDate.now().minusDays(1).toString(),
+                    sunrise = "05:58:04",
+                    sunset = "19:58:06",
+                    dawn = "05:26:37",
+                    dusk = "20:29:33"
+                ),
+                DateDawnDusk(
                     date = LocalDate.now().toString(),
                     sunrise = "05:59:15",
                     sunset = "19:56:30",

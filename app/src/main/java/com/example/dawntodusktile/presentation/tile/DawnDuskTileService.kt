@@ -9,7 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.wear.protolayout.ResourceBuilders
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
-import androidx.wear.tiles.TileService
+import com.example.dawntodusktile.presentation.DateDawnDusk
 import com.example.dawntodusktile.presentation.DawnDuskRepo
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -74,8 +74,8 @@ class DawnDuskTileService : SuspendingTileService() {
 
         val result = tileState ?: DawnDuskTileState(emptyList())
 
-        // 2. Check if we need to refresh: missing or doesn't have today's data
-        val isStale = result.dawnDuskDates.none { it.date == today }
+        // 2. Check if we need to refresh: missing or today's data is not the middle element
+        val isStale = result.dawnDuskDates.size < 3 || result.dawnDuskDates[1].date != today
 
         if (isStale) {
             Log.d(TAG, "Data is missing or stale. Triggering background refresh...")
@@ -181,12 +181,55 @@ class DawnDuskTileService : SuspendingTileService() {
         null
     }
 
+    private suspend fun fetchDawnDuskDates(location: Location): List<DateDawnDusk>? = withContext(Dispatchers.IO) {
+        try {
+            val today = LocalDate.now()
+            val yesterday = today.minusDays(1)
+            val tomorrow = today.plusDays(1)
+            
+            val urlString = "https://api.sunrisesunset.io/json?lat=${location.latitude}&lng=${location.longitude}&date_start=$yesterday&date_end=$tomorrow&time_format=24"
+            Log.d(TAG, "Fetching dawn/dusk data from: $urlString")
+            val url = URL(urlString)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+            connection.connect()
+
+            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                val response = connection.inputStream.bufferedReader().use { it.readText() }
+                val json = JSONObject(response)
+                val results = json.getJSONArray("results")
+                val dawnDuskList = mutableListOf<DateDawnDusk>()
+                
+                for (i in 0 until results.length()) {
+                    val dayData = results.getJSONObject(i)
+                    dawnDuskList.add(
+                        DateDawnDusk(
+                            date = dayData.getString("date"),
+                            sunrise = dayData.getString("sunrise"),
+                            sunset = dayData.getString("sunset"),
+                            dawn = dayData.getString("dawn"),
+                            dusk = dayData.getString("dusk")
+                        )
+                    )
+                }
+                Log.d(TAG, "Dawn/dusk data fetched for ${dawnDuskList.size} days")
+                return@withContext dawnDuskList
+            } else {
+                Log.e(TAG, "Dawn/dusk API error: ${connection.responseCode}")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch dawn/dusk data", e)
+        }
+        null
+    }
+
     private suspend fun refreshData(location: Location) {
         Log.d(TAG, "Refreshing data for location: ${location.latitude}, ${location.longitude}")
         val locationName = fetchLocationName(location) ?: "Unknown Location"
-        // For now, we still use mock dates but we acknowledge the location.
+        val dawnDuskDates = fetchDawnDuskDates(location) ?: DawnDuskRepo.currentDates
+        
         repo.updateDateDawnDusk(
-            DawnDuskRepo.currentDates,
+            dawnDuskDates,
             locationName,
             location.latitude,
             location.longitude
