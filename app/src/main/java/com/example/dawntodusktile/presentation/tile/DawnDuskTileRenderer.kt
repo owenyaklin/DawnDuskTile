@@ -228,11 +228,17 @@ private fun dawnDuskTileLayout(
 @Preview(device = WearDevices.SMALL_ROUND)
 @Preview(device = WearDevices.LARGE_ROUND)
 @Preview(device = WearDevices.SQUARE)
-fun messagingTileLayoutPreview(context: Context): TilePreviewData {
+fun dawnDuskTileLayoutPreview(context: Context): TilePreviewData {
 
     return TilePreviewData { request ->
         DawnDuskTileRenderer(context).renderTimeline(
-            DawnDuskTileState(currentDates, "Mock Location"), request
+            DawnDuskTileState(
+                dawnDuskDates = currentDates,
+                locationName = "Mock Location",
+                latitude = 37.7749,
+                longitude = -122.4194,
+                lastUpdatedMillis = System.currentTimeMillis()
+            ), request
         )
     }
 
