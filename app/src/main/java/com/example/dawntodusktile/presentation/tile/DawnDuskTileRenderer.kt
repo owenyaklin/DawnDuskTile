@@ -34,12 +34,12 @@ class DawnDuskTileRenderer(context: Context) : SingleTileLayoutRenderer<DawnDusk
         state: DawnDuskTileState, deviceParameters: DeviceParametersBuilders.DeviceParameters
     ): LayoutElementBuilders.LayoutElement {
 
-        return dawnDuskTileLayout(context, deviceParameters, state)
+        return dawnDuskTileLayout(deviceParameters, state)
     }
 }
 
 private fun dawnDuskTileLayout(
-    context: Context, deviceParameters: DeviceParametersBuilders.DeviceParameters, state: DawnDuskTileState
+    deviceParameters: DeviceParametersBuilders.DeviceParameters, state: DawnDuskTileState
 ): EdgeContentLayout {
     if (state.dawnDuskDates.size < 3) {
         return EdgeContentLayout.Builder(deviceParameters).setResponsiveContentInsetEnabled(true).setPrimaryLabelTextContent(
@@ -134,6 +134,8 @@ private fun dawnDuskTileLayout(
         nowTime !in dawnToday..duskToday.minusNanos(1) -> {
             // Night states (1 or 5)
             CircularProgressIndicator.Builder().setStartAngle(-90f).setEndAngle(90f).setProgress(progress)
+                .setStrokeWidth(8f)
+                .setOuterMarginApplied(false)
                 .setCircularProgressIndicatorColors(
                     ProgressIndicatorColors(
                         ColorBuilders.argb(trackColor), ColorBuilders.argb(nightColor)
@@ -155,18 +157,14 @@ private fun dawnDuskTileLayout(
             val sunsetAngle = 180f * sunsetPoint
             val progressAngle = 180f * progress
 
-            val arcBuilder = LayoutElementBuilders.Arc.Builder()
-                .setAnchorAngle(DimensionBuilders.degrees(-90f))
+            val arcBuilder = LayoutElementBuilders.Arc.Builder().setAnchorAngle(DimensionBuilders.degrees(-90f))
                 .setAnchorType(LayoutElementBuilders.ARC_ANCHOR_START)
 
             // 1. Consolidated Past (Gray)
             if (progressAngle > 0f) {
                 arcBuilder.addContent(
-                    LayoutElementBuilders.ArcLine.Builder()
-                        .setLength(DimensionBuilders.degrees(progressAngle))
-                        .setThickness(DimensionBuilders.dp(12f))
-                        .setColor(ColorBuilders.argb(trackColor))
-                        .build()
+                    LayoutElementBuilders.ArcLine.Builder().setLength(DimensionBuilders.degrees(progressAngle))
+                        .setThickness(DimensionBuilders.dp(8f)).setColor(ColorBuilders.argb(trackColor)).build()
                 )
             }
 
@@ -177,50 +175,37 @@ private fun dawnDuskTileLayout(
                     arcBuilder.addContent(
                         LayoutElementBuilders.ArcLine.Builder()
                             .setLength(DimensionBuilders.degrees(sunriseAngle - progressAngle))
-                            .setThickness(DimensionBuilders.dp(12f))
-                            .setColor(ColorBuilders.argb(dawnDuskColor))
-                            .build()
+                            .setThickness(DimensionBuilders.dp(8f)).setColor(ColorBuilders.argb(dawnDuskColor)).build()
                     )
                     arcBuilder.addContent(
                         LayoutElementBuilders.ArcLine.Builder()
                             .setLength(DimensionBuilders.degrees(sunsetAngle - sunriseAngle))
-                            .setThickness(DimensionBuilders.dp(12f))
-                            .setColor(ColorBuilders.argb(dayColor))
-                            .build()
+                            .setThickness(DimensionBuilders.dp(8f)).setColor(ColorBuilders.argb(dayColor)).build()
                     )
                     arcBuilder.addContent(
-                        LayoutElementBuilders.ArcLine.Builder()
-                            .setLength(DimensionBuilders.degrees(180f - sunsetAngle))
-                            .setThickness(DimensionBuilders.dp(12f))
-                            .setColor(ColorBuilders.argb(dawnDuskColor))
-                            .build()
+                        LayoutElementBuilders.ArcLine.Builder().setLength(DimensionBuilders.degrees(180f - sunsetAngle))
+                            .setThickness(DimensionBuilders.dp(8f)).setColor(ColorBuilders.argb(dawnDuskColor)).build()
                     )
                 }
+
                 progressAngle < sunsetAngle -> {
                     // Currently in Zone 2 (Sunrise to Sunset)
                     arcBuilder.addContent(
                         LayoutElementBuilders.ArcLine.Builder()
                             .setLength(DimensionBuilders.degrees(sunsetAngle - progressAngle))
-                            .setThickness(DimensionBuilders.dp(12f))
-                            .setColor(ColorBuilders.argb(dayColor))
-                            .build()
+                            .setThickness(DimensionBuilders.dp(8f)).setColor(ColorBuilders.argb(dayColor)).build()
                     )
                     arcBuilder.addContent(
-                        LayoutElementBuilders.ArcLine.Builder()
-                            .setLength(DimensionBuilders.degrees(180f - sunsetAngle))
-                            .setThickness(DimensionBuilders.dp(12f))
-                            .setColor(ColorBuilders.argb(dawnDuskColor))
-                            .build()
+                        LayoutElementBuilders.ArcLine.Builder().setLength(DimensionBuilders.degrees(180f - sunsetAngle))
+                            .setThickness(DimensionBuilders.dp(8f)).setColor(ColorBuilders.argb(dawnDuskColor)).build()
                     )
                 }
+
                 progressAngle < 180f -> {
                     // Currently in Zone 3 (Sunset to Dusk)
                     arcBuilder.addContent(
-                        LayoutElementBuilders.ArcLine.Builder()
-                            .setLength(DimensionBuilders.degrees(180f - progressAngle))
-                            .setThickness(DimensionBuilders.dp(12f))
-                            .setColor(ColorBuilders.argb(dawnDuskColor))
-                            .build()
+                        LayoutElementBuilders.ArcLine.Builder().setLength(DimensionBuilders.degrees(180f - progressAngle))
+                            .setThickness(DimensionBuilders.dp(8f)).setColor(ColorBuilders.argb(dawnDuskColor)).build()
                     )
                 }
             }
@@ -229,7 +214,9 @@ private fun dawnDuskTileLayout(
         }
     }
 
-    return EdgeContentLayout.Builder(deviceParameters).setResponsiveContentInsetEnabled(true).setContent(
+    return EdgeContentLayout.Builder(deviceParameters).setResponsiveContentInsetEnabled(true)
+        .setEdgeContentThickness(8f)
+        .setContent(
         LayoutElementBuilders.Column.Builder().addContent(LayoutElementBuilders.Text.Builder().setText(row1Text).build())
             .addContent(LayoutElementBuilders.Text.Builder().setText(time1).build())
             .addContent(LayoutElementBuilders.Text.Builder().setText(row2Text).build())
