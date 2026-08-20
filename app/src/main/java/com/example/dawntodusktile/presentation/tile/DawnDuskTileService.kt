@@ -111,7 +111,7 @@ class DawnDuskTileService : SuspendingTileService() {
         }
 
         return try {
-            val lastLocation = suspendCancellableCoroutine<Location?> { continuation ->
+            val lastLocation = suspendCancellableCoroutine { continuation ->
                 fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                     continuation.resume(location)
                 }.addOnFailureListener {

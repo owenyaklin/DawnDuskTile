@@ -17,21 +17,21 @@ import java.time.LocalDate
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "dateDawnDusk")
 
 class DawnDuskRepo(private val context: Context) {
-    private val COUNT_KEY = intPreferencesKey("date.count")
-    private val LOCATION_NAME_KEY = stringPreferencesKey("location_name")
-    private val LATITUDE_KEY = doublePreferencesKey("latitude")
-    private val LONGITUDE_KEY = doublePreferencesKey("longitude")
-    private val LAST_UPDATED_KEY = longPreferencesKey("last_updated")
+    private val countKey = intPreferencesKey("date.count")
+    private val locationNameKey = stringPreferencesKey("location_name")
+    private val latitudeKey = doublePreferencesKey("latitude")
+    private val longitudeKey = doublePreferencesKey("longitude")
+    private val lastUpdatedKey = longPreferencesKey("last_updated")
 
     fun getInitialValues(): Flow<DawnDuskData> = context.dataStore.data.map { preferences ->
-        val count = preferences[COUNT_KEY] ?: 0
+        val count = preferences[countKey] ?: 0
         val dates = (0 until count).mapNotNull {
             preferences[stringPreferencesKey("date.$it")]?.toDateDawnDusk()
         }
-        val locationName = preferences[LOCATION_NAME_KEY] ?: ""
-        val latitude = preferences[LATITUDE_KEY] ?: 0.0
-        val longitude = preferences[LONGITUDE_KEY] ?: 0.0
-        val lastUpdated = preferences[LAST_UPDATED_KEY] ?: 0L
+        val locationName = preferences[locationNameKey] ?: ""
+        val latitude = preferences[latitudeKey] ?: 0.0
+        val longitude = preferences[longitudeKey] ?: 0.0
+        val lastUpdated = preferences[lastUpdatedKey] ?: 0L
         DawnDuskData(dates, locationName, latitude, longitude, lastUpdated)
     }
 
@@ -47,11 +47,11 @@ class DawnDuskRepo(private val context: Context) {
             dawnDuskDates.forEachIndexed { index, dawnDusk ->
                 it[stringPreferencesKey("date.$index")] = dawnDusk.toPreferencesString()
             }
-            it[COUNT_KEY] = dawnDuskDates.size
-            it[LOCATION_NAME_KEY] = locationName
-            it[LATITUDE_KEY] = latitude
-            it[LONGITUDE_KEY] = longitude
-            it[LAST_UPDATED_KEY] = lastUpdatedMillis
+            it[countKey] = dawnDuskDates.size
+            it[locationNameKey] = locationName
+            it[latitudeKey] = latitude
+            it[longitudeKey] = longitude
+            it[lastUpdatedKey] = lastUpdatedMillis
         }
     }
 
