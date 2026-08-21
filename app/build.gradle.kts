@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -17,10 +18,36 @@ android {
         versionName = "1.0"
     }
 
+    signingConfigs {
+        create("release") {
+            val keystorePropertiesFile = rootProject.file("local.properties")
+            val keystoreProperties = Properties()
+            if (keystorePropertiesFile.exists()) {
+                keystoreProperties.load(keystorePropertiesFile.inputStream())
+            }
+
+            val storeFilePath = (keystoreProperties["RELEASE_STORE_FILE"] as? String)
+                ?: (project.findProperty("RELEASE_STORE_FILE") as? String)
+            if (storeFilePath != null) {
+                storeFile = file(storeFilePath)
+            }
+            
+            keyAlias = (keystoreProperties["RELEASE_KEY_ALIAS"] as? String)
+                ?: (project.findProperty("RELEASE_KEY_ALIAS") as? String)
+            
+            // Try local.properties first, then system properties
+            storePassword = (keystoreProperties["RELEASE_STORE_PASSWORD"] as? String) 
+                ?: (project.findProperty("RELEASE_STORE_PASSWORD") as? String)
+            keyPassword = (keystoreProperties["RELEASE_KEY_PASSWORD"] as? String)
+                ?: (project.findProperty("RELEASE_KEY_PASSWORD") as? String)
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -56,7 +83,6 @@ dependencies {
     implementation(libs.wear.tooling.preview)
     implementation(libs.activity.compose)
     implementation(libs.core.splashscreen)
-    androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
