@@ -68,4 +68,6 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.tiles.tooling.preview)
     debugImplementation(libs.tiles.tooling)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.compose.runtime)
 }
