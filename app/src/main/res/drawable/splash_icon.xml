@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/ic_launcher_background" />
+        </shape>
+    </item>
+    <item
+        android:width="48dp"
+        android:height="48dp"
+        android:gravity="center">
+        <vector
+            android:width="108dp"
+            android:height="108dp"
+            android:viewportWidth="108"
+            android:viewportHeight="108">
+            <path
+                android:fillColor="@color/sun_orange"
+                android:pathData="M54,34c-11.05,0 -20,8.95 -20,20s8.95,20 20,20 20,-8.95 20,-20 -8.95,-20 -20,-20z" />
+            <path
+                android:fillColor="#40FFFFFF"
+                android:pathData="M34,54h40v4h-40z" />
+        </vector>
+    </item>
+</layer-list>

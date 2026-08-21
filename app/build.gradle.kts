@@ -1,0 +1,99 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
+
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+}
+
+android {
+    namespace = "com.example.dawntodusktile"
+    compileSdk = 37
+
+    defaultConfig {
+        applicationId = "com.example.dawntodusktile"
+        minSdk = 34
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    signingConfigs {
+        create("release") {
+            val keystorePropertiesFile = rootProject.file("local.properties")
+            val keystoreProperties = Properties()
+            if (keystorePropertiesFile.exists()) {
+                keystoreProperties.load(keystorePropertiesFile.inputStream())
+            }
+
+            val storeFilePath = (keystoreProperties["RELEASE_STORE_FILE"] as? String)
+                ?: (project.findProperty("RELEASE_STORE_FILE") as? String)
+            if (storeFilePath != null) {
+                storeFile = file(storeFilePath)
+            }
+            
+            keyAlias = (keystoreProperties["RELEASE_KEY_ALIAS"] as? String)
+                ?: (project.findProperty("RELEASE_KEY_ALIAS") as? String)
+            
+            // Try local.properties first, then system properties
+            storePassword = (keystoreProperties["RELEASE_STORE_PASSWORD"] as? String) 
+                ?: (project.findProperty("RELEASE_STORE_PASSWORD") as? String)
+            keyPassword = (keystoreProperties["RELEASE_KEY_PASSWORD"] as? String)
+                ?: (project.findProperty("RELEASE_KEY_PASSWORD") as? String)
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        compose = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+        freeCompilerArgs.addAll(
+            "-opt-in=kotlin.RequiresOptIn",
+            "-opt-in=com.google.android.horologist.tiles.ExperimentalHorologistTilesApi",
+            "-opt-in=com.google.android.horologist.compose.tools.ExperimentalHorologistComposeToolsApi"
+        )
+    }
+}
+
+dependencies {
+    implementation(libs.play.services.wearable)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.ui)
+    implementation(libs.ui.graphics)
+    implementation(libs.ui.tooling.preview)
+    implementation(libs.compose.material)
+    implementation(libs.compose.foundation)
+    implementation(libs.wear.tooling.preview)
+    implementation(libs.activity.compose)
+    implementation(libs.core.splashscreen)
+    androidTestImplementation(libs.ui.test.junit4)
+    debugImplementation(libs.ui.tooling)
+    debugImplementation(libs.ui.test.manifest)
+    implementation(libs.google.horologist.compose.tools)
+    implementation(libs.horologist.tiles)
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.play.services.location)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.tiles.tooling.preview)
+    debugImplementation(libs.tiles.tooling)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.compose.runtime)
+}
