@@ -2,6 +2,7 @@ package com.example.dawntodusktile.presentation
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.MaterialTheme
@@ -59,7 +61,11 @@ class MainActivity : ComponentActivity() {
                 val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
                 val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
 
-                if (fineGranted || coarseGranted) {
+                val backgroundGranted = ContextCompat.checkSelfPermission(
+                    this@MainActivity, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+
+                if ((fineGranted || coarseGranted) && !backgroundGranted) {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.fromParts("package", packageName, null)
                     }
@@ -127,15 +133,19 @@ fun DawnDuskScreen(state: DawnDuskTileState?) {
         nowTime < dawnToday -> {
             (("Dawn" to today) to ("Sunrise" to today)) to calculateProgress(duskYesterdayDT, dawnTodayDT, now)
         }
+
         nowTime < sunriseToday -> {
             (("Dusk" to today) to ("Sunrise" to today)) to calculateProgress(dawnTodayDT, duskTodayDT, now)
         }
+
         nowTime < sunsetToday -> {
             (("Dusk" to today) to ("Sunset" to today)) to calculateProgress(dawnTodayDT, duskTodayDT, now)
         }
+
         nowTime < duskToday -> {
             (("Dusk" to today) to ("Sunrise" to tomorrow)) to calculateProgress(dawnTodayDT, duskTodayDT, now)
         }
+
         else -> {
             (("Dawn" to tomorrow) to ("Sunrise" to tomorrow)) to calculateProgress(duskTodayDT, dawnTomorrowDT, now)
         }
@@ -171,20 +181,18 @@ fun DawnDuskScreen(state: DawnDuskTileState?) {
     val dayColor = Color(0xFFFFEB3B)
     val trackColor = Color(0xFF333333)
 
-    Box(modifier = Modifier.fillMaxSize().padding(8.dp), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(8.dp), contentAlignment = Alignment.Center) {
         // Edge Content (Progress)
         val isDay = nowTime in dawnToday..duskToday.minusNanos(1)
-        
+
         Canvas(modifier = Modifier.fillMaxSize()) {
             val stroke = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
-            
+
             // 1. Draw Background Track (full 180 degrees)
             drawArc(
-                color = trackColor,
-                startAngle = 180f,
-                sweepAngle = 180f,
-                useCenter = false,
-                style = stroke
+                color = trackColor, startAngle = 180f, sweepAngle = 180f, useCenter = false, style = stroke
             )
 
             val progressAngle = 180f * progress
@@ -203,30 +211,72 @@ fun DawnDuskScreen(state: DawnDuskTileState?) {
             } else {
                 // Day transition states (2, 3, 4) - Segmented Future
                 val dawnToDuskTotal = Duration.between(dawnTodayDT, duskTodayDT).toMillis().toFloat()
-                val sunrisePoint = Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(today.date), sunriseToday)).toMillis().toFloat() / dawnToDuskTotal
-                val sunsetPoint = Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(today.date), sunsetToday)).toMillis().toFloat() / dawnToDuskTotal
+                val sunrisePoint =
+                    Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(today.date), sunriseToday)).toMillis()
+                        .toFloat() / dawnToDuskTotal
+                val sunsetPoint =
+                    Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(today.date), sunsetToday)).toMillis()
+                        .toFloat() / dawnToDuskTotal
 
                 val sunriseAngle = 180f * sunrisePoint
                 val sunsetAngle = 180f * sunsetPoint
 
                 // We don't need to draw the "Past" (Gray) because the Track is already Gray.
                 // We only draw the "Future" colored segments.
-                
+
                 when {
                     progressAngle < sunriseAngle -> {
                         // Currently in Zone 1 (Dawn to Sunrise)
-                        drawArc(color = dawnDuskColor, startAngle = 180f + progressAngle, sweepAngle = sunriseAngle - progressAngle, useCenter = false, style = stroke)
-                        drawArc(color = dayColor, startAngle = 180f + sunriseAngle, sweepAngle = sunsetAngle - sunriseAngle, useCenter = false, style = stroke)
-                        drawArc(color = dawnDuskColor, startAngle = 180f + sunsetAngle, sweepAngle = 180f - sunsetAngle, useCenter = false, style = stroke)
+                        drawArc(
+                            color = dawnDuskColor,
+                            startAngle = 180f + progressAngle,
+                            sweepAngle = sunriseAngle - progressAngle,
+                            useCenter = false,
+                            style = stroke
+                        )
+                        drawArc(
+                            color = dayColor,
+                            startAngle = 180f + sunriseAngle,
+                            sweepAngle = sunsetAngle - sunriseAngle,
+                            useCenter = false,
+                            style = stroke
+                        )
+                        drawArc(
+                            color = dawnDuskColor,
+                            startAngle = 180f + sunsetAngle,
+                            sweepAngle = 180f - sunsetAngle,
+                            useCenter = false,
+                            style = stroke
+                        )
                     }
+
                     progressAngle < sunsetAngle -> {
                         // Currently in Zone 2 (Sunrise to Sunset)
-                        drawArc(color = dayColor, startAngle = 180f + progressAngle, sweepAngle = sunsetAngle - progressAngle, useCenter = false, style = stroke)
-                        drawArc(color = dawnDuskColor, startAngle = 180f + sunsetAngle, sweepAngle = 180f - sunsetAngle, useCenter = false, style = stroke)
+                        drawArc(
+                            color = dayColor,
+                            startAngle = 180f + progressAngle,
+                            sweepAngle = sunsetAngle - progressAngle,
+                            useCenter = false,
+                            style = stroke
+                        )
+                        drawArc(
+                            color = dawnDuskColor,
+                            startAngle = 180f + sunsetAngle,
+                            sweepAngle = 180f - sunsetAngle,
+                            useCenter = false,
+                            style = stroke
+                        )
                     }
+
                     progressAngle < 180f -> {
                         // Currently in Zone 3 (Sunset to Dusk)
-                        drawArc(color = dawnDuskColor, startAngle = 180f + progressAngle, sweepAngle = 180f - progressAngle, useCenter = false, style = stroke)
+                        drawArc(
+                            color = dawnDuskColor,
+                            startAngle = 180f + progressAngle,
+                            sweepAngle = 180f - progressAngle,
+                            useCenter = false,
+                            style = stroke
+                        )
                     }
                 }
             }
@@ -236,7 +286,9 @@ fun DawnDuskScreen(state: DawnDuskTileState?) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
         ) {
             Text(
                 text = state.locationName,
@@ -244,17 +296,16 @@ fun DawnDuskScreen(state: DawnDuskTileState?) {
                 color = MaterialTheme.colors.secondary,
                 textAlign = TextAlign.Center
             )
-            
+
             Column(
-                modifier = Modifier.padding(vertical = 4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.padding(vertical = 4.dp), horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(text = row1Text, style = MaterialTheme.typography.body2, fontWeight = FontWeight.Bold)
                 Text(text = time1, style = MaterialTheme.typography.caption2)
-                
+
                 Text(
-                    text = row2Text, 
-                    style = MaterialTheme.typography.body2, 
+                    text = row2Text,
+                    style = MaterialTheme.typography.body2,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 4.dp)
                 )
@@ -270,8 +321,7 @@ fun DefaultPreview() {
     DawnToDuskTileTheme {
         DawnDuskScreen(
             DawnDuskTileState(
-                dawnDuskDates = currentDates,
-                locationName = "Mock Location"
+                dawnDuskDates = currentDates, locationName = "Mock Location"
             )
         )
     }
