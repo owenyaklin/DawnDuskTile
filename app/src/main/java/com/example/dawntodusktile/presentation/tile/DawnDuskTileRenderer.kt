@@ -10,6 +10,8 @@ import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.material.CircularProgressIndicator
 import androidx.wear.protolayout.material.ProgressIndicatorColors
+import androidx.wear.protolayout.material.Text
+import androidx.wear.protolayout.material.Typography
 import androidx.wear.protolayout.material.layouts.EdgeContentLayout
 import androidx.wear.tiles.tooling.preview.Preview
 import androidx.wear.tiles.tooling.preview.TilePreviewData
@@ -34,12 +36,12 @@ class DawnDuskTileRenderer(context: Context) : SingleTileLayoutRenderer<DawnDusk
         state: DawnDuskTileState, deviceParameters: DeviceParametersBuilders.DeviceParameters
     ): LayoutElementBuilders.LayoutElement {
 
-        return dawnDuskTileLayout(deviceParameters, state)
+        return dawnDuskTileLayout(context, deviceParameters, state)
     }
 }
 
 private fun dawnDuskTileLayout(
-    deviceParameters: DeviceParametersBuilders.DeviceParameters, state: DawnDuskTileState
+    context: Context, deviceParameters: DeviceParametersBuilders.DeviceParameters, state: DawnDuskTileState
 ): EdgeContentLayout {
     if (state.dawnDuskDates.size < 3) {
         return EdgeContentLayout.Builder(deviceParameters).setResponsiveContentInsetEnabled(true).setPrimaryLabelTextContent(
@@ -130,13 +132,11 @@ private fun dawnDuskTileLayout(
     val dayColor = 0xFFFFEB3B.toInt() // Yellow
     val trackColor = 0xFF333333.toInt()
 
-    val edgeContent = when {
-        nowTime !in dawnToday..duskToday.minusNanos(1) -> {
+    val edgeContent = when (nowTime) {
+        !in dawnToday..duskToday.minusNanos(1) -> {
             // Night states (1 or 5)
-            CircularProgressIndicator.Builder().setStartAngle(-90f).setEndAngle(90f).setProgress(progress)
-                .setStrokeWidth(8f)
-                .setOuterMarginApplied(false)
-                .setCircularProgressIndicatorColors(
+            CircularProgressIndicator.Builder().setStartAngle(-90f).setEndAngle(90f).setProgress(progress).setStrokeWidth(8f)
+                .setOuterMarginApplied(false).setCircularProgressIndicatorColors(
                     ProgressIndicatorColors(
                         ColorBuilders.argb(trackColor), ColorBuilders.argb(nightColor)
                     )
@@ -214,15 +214,27 @@ private fun dawnDuskTileLayout(
         }
     }
 
-    return EdgeContentLayout.Builder(deviceParameters).setResponsiveContentInsetEnabled(true)
-        .setEdgeContentThickness(8f)
+    return EdgeContentLayout.Builder(deviceParameters).setResponsiveContentInsetEnabled(true).setEdgeContentThickness(8f)
         .setContent(
-        LayoutElementBuilders.Column.Builder().addContent(LayoutElementBuilders.Text.Builder().setText(row1Text).build())
-            .addContent(LayoutElementBuilders.Text.Builder().setText(time1).build())
-            .addContent(LayoutElementBuilders.Text.Builder().setText(row2Text).build())
-            .addContent(LayoutElementBuilders.Text.Builder().setText(time2).build()).build()
-    ).setPrimaryLabelTextContent(LayoutElementBuilders.Text.Builder().setText(state.locationName).build())
-        .setEdgeContent(edgeContent).build()
+            LayoutElementBuilders.Column.Builder().addContent(
+                Text.Builder(context, state.locationName).setTypography(Typography.TYPOGRAPHY_CAPTION1)
+                    .setColor(ColorBuilders.argb(0xFFFDE293.toInt())).build()
+            ).addContent(
+                Text.Builder(context, row1Text).setTypography(Typography.TYPOGRAPHY_BODY2)
+                    .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).setWeight(LayoutElementBuilders.FONT_WEIGHT_BOLD)
+                    .build()
+            ).addContent(
+                Text.Builder(context, time1).setTypography(Typography.TYPOGRAPHY_CAPTION2)
+                    .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).build()
+            ).addContent(
+                Text.Builder(context, row2Text).setTypography(Typography.TYPOGRAPHY_BODY2)
+                    .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).setWeight(LayoutElementBuilders.FONT_WEIGHT_BOLD)
+                    .build()
+            ).addContent(
+                Text.Builder(context, time2).setTypography(Typography.TYPOGRAPHY_CAPTION2)
+                    .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).build()
+            ).build()
+        ).setEdgeContent(edgeContent).build()
 }
 
 @Preview(device = WearDevices.SMALL_ROUND)

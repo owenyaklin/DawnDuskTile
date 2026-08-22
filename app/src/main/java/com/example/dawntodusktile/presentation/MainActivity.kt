@@ -21,6 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,6 +43,8 @@ import androidx.wear.tooling.preview.devices.WearDevices
 import com.example.dawntodusktile.presentation.DawnDuskRepo.Companion.currentDates
 import com.example.dawntodusktile.presentation.theme.DawnToDuskTileTheme
 import com.example.dawntodusktile.presentation.tile.DawnDuskTileState
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -96,6 +101,16 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun DawnDuskScreen(state: DawnDuskTileState?) {
+    // Add a periodic tick to refresh the countdowns every minute
+    var currentTime by remember { mutableStateOf(LocalDateTime.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            val millisToNextMinute = 60000 - (System.currentTimeMillis() % 60000)
+            delay(millisToNextMinute.milliseconds) // Sync to minute boundary
+            currentTime = LocalDateTime.now()
+        }
+    }
+
     if (state == null || (state.dawnDuskDates.size < 3)) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
@@ -109,7 +124,7 @@ fun DawnDuskScreen(state: DawnDuskTileState?) {
     val yesterday = state.dawnDuskDates[0]
     val today = state.dawnDuskDates[1]
     val tomorrow = state.dawnDuskDates[2]
-    val now = LocalDateTime.now()
+    val now = currentTime
     val nowTime = now.toLocalTime()
 
     val dawnToday = LocalTime.parse(today.dawn)

@@ -28,8 +28,8 @@ android {
 
             val storeFilePath = (keystoreProperties["RELEASE_STORE_FILE"] as? String)
                 ?: (project.findProperty("RELEASE_STORE_FILE") as? String)
-            if (storeFilePath != null) {
-                storeFile = file(storeFilePath)
+            storeFilePath?.let {
+                storeFile = file(it)
             }
             
             keyAlias = (keystoreProperties["RELEASE_KEY_ALIAS"] as? String)
@@ -67,7 +67,7 @@ kotlin {
         freeCompilerArgs.addAll(
             "-opt-in=kotlin.RequiresOptIn",
             "-opt-in=com.google.android.horologist.tiles.ExperimentalHorologistTilesApi",
-            "-opt-in=com.google.android.horologist.compose.tools.ExperimentalHorologistComposeToolsApi"
+            "-opt-in=com.google.android.horologist.compose.tools.ExperimentalHorologistComposeToolsApi",
         )
     }
 }
@@ -83,7 +83,9 @@ dependencies {
     implementation(libs.wear.tooling.preview)
     implementation(libs.activity.compose)
     implementation(libs.core.splashscreen)
+    androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
+    debugImplementation(platform(libs.compose.bom))
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
     implementation(libs.google.horologist.compose.tools)
