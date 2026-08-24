@@ -45,11 +45,8 @@ import com.example.dawntodusktile.presentation.theme.DawnToDuskTileTheme
 import com.example.dawntodusktile.presentation.tile.DawnDuskTileState
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
-import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.abs
 
@@ -121,75 +118,19 @@ fun DawnDuskScreen(state: DawnDuskTileState?) {
         return
     }
 
-    val yesterday = state.dawnDuskDates[0]
-    val today = state.dawnDuskDates[1]
-    val tomorrow = state.dawnDuskDates[2]
-    val now = currentTime
-    val nowTime = now.toLocalTime()
+    val solarState = SolarDataUtils.calculateSolarState(currentTime, state.dawnDuskDates) ?: return
 
-    val dawnToday = LocalTime.parse(today.dawn)
-    val sunriseToday = LocalTime.parse(today.sunrise)
-    val sunsetToday = LocalTime.parse(today.sunset)
-    val duskToday = LocalTime.parse(today.dusk)
-
-    fun calculateProgress(start: LocalDateTime, end: LocalDateTime, current: LocalDateTime): Float {
-        val total = Duration.between(start, end).toMillis()
-        if (total <= 0) return 0f
-        val elapsed = Duration.between(start, current).toMillis()
-        return (elapsed.toFloat() / total.toFloat()).coerceIn(0f, 1f)
-    }
-
-    val duskYesterdayDT = LocalDateTime.of(LocalDate.parse(yesterday.date), LocalTime.parse(yesterday.dusk))
-    val dawnTodayDT = LocalDateTime.of(LocalDate.parse(today.date), LocalTime.parse(today.dawn))
-    val duskTodayDT = LocalDateTime.of(LocalDate.parse(today.date), LocalTime.parse(today.dusk))
-    val dawnTomorrowDT = LocalDateTime.of(LocalDate.parse(tomorrow.date), LocalTime.parse(tomorrow.dawn))
-
-    val (rowParams, progress) = when {
-        nowTime < dawnToday -> {
-            (("Dawn" to today) to ("Sunrise" to today)) to calculateProgress(duskYesterdayDT, dawnTodayDT, now)
-        }
-
-        nowTime < sunriseToday -> {
-            (("Dusk" to today) to ("Sunrise" to today)) to calculateProgress(dawnTodayDT, duskTodayDT, now)
-        }
-
-        nowTime < sunsetToday -> {
-            (("Dusk" to today) to ("Sunset" to today)) to calculateProgress(dawnTodayDT, duskTodayDT, now)
-        }
-
-        nowTime < duskToday -> {
-            (("Dusk" to today) to ("Sunrise" to tomorrow)) to calculateProgress(dawnTodayDT, duskTodayDT, now)
-        }
-
-        else -> {
-            (("Dawn" to tomorrow) to ("Sunrise" to tomorrow)) to calculateProgress(duskTodayDT, dawnTomorrowDT, now)
-        }
-    }
-    val row1Data = rowParams.first
-    val row2Data = rowParams.second
-
-    fun formatEvent(label: String, dateDawnDusk: DateDawnDusk, now: LocalDateTime): Pair<String, String> {
-        val timeStr = when (label) {
-            "Dawn" -> dateDawnDusk.dawn
-            "Sunrise" -> dateDawnDusk.sunrise
-            "Sunset" -> dateDawnDusk.sunset
-            "Dusk" -> dateDawnDusk.dusk
-            else -> ""
-        }
-        val eventTime = LocalTime.parse(timeStr)
-        val eventDate = LocalDate.parse(dateDawnDusk.date)
-        val eventDateTime = LocalDateTime.of(eventDate, eventTime)
-
-        val displayTime = eventTime.format(DateTimeFormatter.ofPattern("h:mm a", Locale.US))
-        val duration = Duration.between(now, eventDateTime)
-        val hours = duration.toHours()
-        val minutes = abs(duration.toMinutes() % 60)
-
-        return ("$label: $displayTime") to ("${hours}h ${minutes}m")
-    }
-
-    val (row1Text, time1) = formatEvent(row1Data.first, row1Data.second, now)
-    val (row2Text, time2) = formatEvent(row2Data.first, row2Data.second, now)
+    val row1Text = solarState.row1Text
+    val time1 = solarState.time1
+    val row2Text = solarState.row2Text
+    val time2 = solarState.time2
+    val progress = solarState.progress
+    val isDay = solarState.isDay
+    val dawnTodayDT = solarState.dawnTodayDT
+    val duskTodayDT = solarState.duskTodayDT
+    val sunriseToday = solarState.sunriseToday
+    val sunsetToday = solarState.sunsetToday
+    val todayDate = solarState.todayDate
 
     val nightColor = Color(0xFF003366)
     val dawnDuskColor = Color(0xFFFF9800)
@@ -200,11 +141,10 @@ fun DawnDuskScreen(state: DawnDuskTileState?) {
         .fillMaxSize()
         .padding(8.dp), contentAlignment = Alignment.Center) {
         // Edge Content (Progress)
-        val isDay = nowTime in dawnToday..duskToday.minusNanos(1)
-
+        
         Canvas(modifier = Modifier.fillMaxSize()) {
             val stroke = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
-
+            
             // 1. Draw Background Track (full 180 degrees)
             drawArc(
                 color = trackColor, startAngle = 180f, sweepAngle = 180f, useCenter = false, style = stroke
@@ -225,12 +165,12 @@ fun DawnDuskScreen(state: DawnDuskTileState?) {
                 }
             } else {
                 // Day transition states (2, 3, 4) - Segmented Future
-                val dawnToDuskTotal = Duration.between(dawnTodayDT, duskTodayDT).toMillis().toFloat()
+                val dawnToDuskTotal = java.time.Duration.between(dawnTodayDT, duskTodayDT).toMillis().toFloat()
                 val sunrisePoint =
-                    Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(today.date), sunriseToday)).toMillis()
+                    java.time.Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(todayDate), sunriseToday)).toMillis()
                         .toFloat() / dawnToDuskTotal
                 val sunsetPoint =
-                    Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(today.date), sunsetToday)).toMillis()
+                    java.time.Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(todayDate), sunsetToday)).toMillis()
                         .toFloat() / dawnToDuskTotal
 
                 val sunriseAngle = 180f * sunrisePoint
