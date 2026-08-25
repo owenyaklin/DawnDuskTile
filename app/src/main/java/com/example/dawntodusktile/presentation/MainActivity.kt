@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
@@ -108,12 +109,18 @@ fun DawnDuskScreen(state: DawnDuskTileState?) {
         }
     }
 
-    if (state == null || (state.dawnDuskDates.size < 3)) {
+    if (state == null || state.isLoading || (state.dawnDuskDates.size < 3)) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
-                text = if (state?.locationName?.isEmpty() == true) "Loading..." else "Fetching data...",
-                textAlign = TextAlign.Center
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = if (state?.isLoading == true) "Refreshing data..." else if (state?.locationName?.isEmpty() == true) "Loading..." else "Fetching data...",
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.caption2
+                )
+            }
         }
         return
     }

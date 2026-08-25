@@ -7,5 +7,6 @@ data class DawnDuskTileState(
     val locationName: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
-    val lastUpdatedMillis: Long = 0L
+    val lastUpdatedMillis: Long = 0L,
+    val isLoading: Boolean = false
 )
