@@ -75,6 +75,7 @@ class DawnDuskTileService : SuspendingTileService() {
             WorkManager.getInstance(this).enqueueUniqueWork(
                 "DawnDuskRefresh", ExistingWorkPolicy.KEEP, workRequest
             )
+            return result.copy(isLoading = true)
         }
 
         return result

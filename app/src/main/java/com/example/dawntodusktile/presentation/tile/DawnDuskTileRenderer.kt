@@ -39,10 +39,23 @@ class DawnDuskTileRenderer(context: Context) : SingleTileLayoutRenderer<DawnDusk
 private fun dawnDuskTileLayout(
     context: Context, deviceParameters: DeviceParametersBuilders.DeviceParameters, state: DawnDuskTileState
 ): EdgeContentLayout {
-    if (state.dawnDuskDates.size < 3) {
-        return EdgeContentLayout.Builder(deviceParameters).setResponsiveContentInsetEnabled(true).setPrimaryLabelTextContent(
-            LayoutElementBuilders.Text.Builder().setText(state.locationName.ifEmpty { "Loading..." }).build()
-        ).setContent(LayoutElementBuilders.Text.Builder().setText("Fetching data...").build()).build()
+    if (state.dawnDuskDates.size < 3 || state.isLoading) {
+        val builder = EdgeContentLayout.Builder(deviceParameters)
+            .setResponsiveContentInsetEnabled(true)
+            .setContent(
+                Text.Builder(context, if (state.isLoading) "Refreshing..." else "Fetching data...")
+                    .setTypography(Typography.TYPOGRAPHY_BODY2)
+                    .build()
+            )
+
+        if (!state.isLoading) {
+            builder.setPrimaryLabelTextContent(
+                Text.Builder(context, state.locationName.ifEmpty { "Loading..." })
+                    .setTypography(Typography.TYPOGRAPHY_CAPTION1)
+                    .setColor(ColorBuilders.argb(0xFFFDE293.toInt())).build()
+            )
+        }
+        return builder.build()
     }
 
     val now = LocalDateTime.now()

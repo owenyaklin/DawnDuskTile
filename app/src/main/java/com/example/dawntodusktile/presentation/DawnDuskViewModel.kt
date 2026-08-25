@@ -12,6 +12,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -23,15 +24,20 @@ class DawnDuskViewModel(application: Application) : AndroidViewModel(application
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(application)
 
-    val uiState: StateFlow<DawnDuskTileState?> = repo.getInitialValues().map { data ->
-        DawnDuskTileState(
-            data.dates, data.locationName, data.latitude, data.longitude, data.lastUpdatedMillis,
+    private val workManager = WorkManager.getInstance(application)
+    private val refreshWorkInfo = workManager.getWorkInfosForUniqueWorkFlow("DawnDuskRefresh")
+        .map { it.any { info -> info.state == androidx.work.WorkInfo.State.RUNNING || info.state == androidx.work.WorkInfo.State.ENQUEUED } }
+
+    val uiState: StateFlow<DawnDuskTileState?> = 
+        combine(repo.getInitialValues(), refreshWorkInfo) { data, loading ->
+            DawnDuskTileState(
+                data.dates, data.locationName, data.latitude, data.longitude, data.lastUpdatedMillis, loading
+            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null,
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = null,
-    )
 
     init {
         viewModelScope.launch {
@@ -45,7 +51,7 @@ class DawnDuskViewModel(application: Application) : AndroidViewModel(application
         if (SolarDataUtils.isStale(currentState, getApplication(), fusedLocationClient)) {
             Log.d(TAG, "Data is stale. Triggering background refresh...")
             val workRequest = OneTimeWorkRequestBuilder<DawnDuskRefreshWorker>().build()
-            WorkManager.getInstance(getApplication()).enqueueUniqueWork(
+            workManager.enqueueUniqueWork(
                 "DawnDuskRefresh", ExistingWorkPolicy.KEEP, workRequest,
             )
         }
