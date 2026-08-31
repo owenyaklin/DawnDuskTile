@@ -4,10 +4,13 @@ package com.example.dawntodusktile.presentation.tile
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.ColorBuilders
 import androidx.wear.protolayout.DeviceParametersBuilders
 import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
+import androidx.wear.protolayout.ModifiersBuilders
+import androidx.wear.protolayout.material.Button
 import androidx.wear.protolayout.material.CircularProgressIndicator
 import androidx.wear.protolayout.material.ProgressIndicatorColors
 import androidx.wear.protolayout.material.Text
@@ -180,7 +183,28 @@ private fun dawnDuskTileLayout(
                 Text.Builder(context, time2).setTypography(Typography.TYPOGRAPHY_CAPTION2)
                     .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).build()
             ).build()
-        ).setEdgeContent(edgeContent).build()
+        )
+        .setSecondaryLabelTextContent(
+            Button.Builder(
+                context,
+                ModifiersBuilders.Clickable.Builder()
+                    .setOnClick(
+                        ActionBuilders.LaunchAction.Builder()
+                            .setAndroidActivity(
+                                ActionBuilders.AndroidActivity.Builder()
+                                    .setPackageName(context.packageName)
+                                    .setClassName("com.example.dawntodusktile.presentation.TransparentRefreshActivity")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+                .setIconContent(DawnDuskTileService.ID_IC_REFRESH)
+                .setSize(DimensionBuilders.dp(24f))
+                .build()
+        )
+        .setEdgeContent(edgeContent).build()
 }
 
 @Preview(device = WearDevices.SMALL_ROUND)

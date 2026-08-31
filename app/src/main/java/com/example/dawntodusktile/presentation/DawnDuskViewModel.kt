@@ -4,8 +4,6 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.dawntodusktile.presentation.tile.DawnDuskTileState
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -45,15 +43,16 @@ class DawnDuskViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun forceRefresh() {
+        SolarDataUtils.forceRefresh(getApplication())
+    }
+
     private suspend fun refreshIfStale() {
         val currentState = uiState.filterNotNull().first()
 
         if (SolarDataUtils.isStale(currentState, getApplication(), fusedLocationClient)) {
             Log.d(TAG, "Data is stale. Triggering background refresh...")
-            val workRequest = OneTimeWorkRequestBuilder<DawnDuskRefreshWorker>().build()
-            workManager.enqueueUniqueWork(
-                "DawnDuskRefresh", ExistingWorkPolicy.KEEP, workRequest,
-            )
+            SolarDataUtils.forceRefresh(getApplication())
         }
     }
 

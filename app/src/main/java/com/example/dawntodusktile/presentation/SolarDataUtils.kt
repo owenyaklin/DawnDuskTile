@@ -7,6 +7,9 @@ import android.location.Location
 import androidx.core.content.ContextCompat
 import com.example.dawntodusktile.presentation.tile.DawnDuskTileState
 import com.google.android.gms.location.FusedLocationProviderClient
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.time.Duration
 import java.time.LocalDate
@@ -18,7 +21,7 @@ import kotlin.coroutines.resume
 import kotlin.math.abs
 
 object SolarDataUtils {
-    const val STALE_DISTANCE_METERS = 3000.0
+    const val STALE_DISTANCE_METERS = 5000.0
     const val STALE_TIME_MILLIS = 4 * 60 * 60 * 1000L
 
     fun calculateProgress(start: LocalDateTime, end: LocalDateTime, current: LocalDateTime): Float {
@@ -59,7 +62,7 @@ object SolarDataUtils {
         val duskTodayDT: LocalDateTime,
         val sunriseToday: LocalTime,
         val sunsetToday: LocalTime,
-        val todayDate: String
+        val todayDate: String,
     )
 
     fun calculateSolarState(now: LocalDateTime, dawnDuskDates: List<DateDawnDusk>): SolarStateResult? {
@@ -133,6 +136,13 @@ object SolarDataUtils {
         val isDistanceStale = state.lastUpdatedMillis > 0 && checkDistanceStale(context, fusedLocationClient, state.latitude, state.longitude)
 
         return isDateStale || isTimeStale || isDistanceStale
+    }
+
+    fun forceRefresh(context: Context) {
+        val workRequest = OneTimeWorkRequestBuilder<DawnDuskRefreshWorker>().build()
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "DawnDuskRefresh", ExistingWorkPolicy.KEEP, workRequest,
+        )
     }
 
     private suspend fun checkDistanceStale(
