@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -36,11 +37,16 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
+import androidx.compose.ui.res.painterResource
+import com.example.dawntodusktile.R
 import com.example.dawntodusktile.presentation.DawnDuskRepo.Companion.currentDates
 import com.example.dawntodusktile.presentation.theme.DawnToDuskTileTheme
 import com.example.dawntodusktile.presentation.tile.DawnDuskTileState
@@ -48,8 +54,6 @@ import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.Locale
-import kotlin.math.abs
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,7 +63,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val permissionLauncher = rememberLauncherForActivityResult(
-                ActivityResultContracts.RequestMultiplePermissions()
+                ActivityResultContracts.RequestMultiplePermissions(),
             ) { permissions ->
                 val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
                 val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
@@ -90,7 +94,9 @@ class MainActivity : ComponentActivity() {
 
             DawnToDuskTileTheme {
                 Scaffold {
-                    DawnDuskScreen(uiState)
+                    DawnDuskScreen(uiState) {
+                        viewModel.forceRefresh()
+                    }
                 }
             }
         }
@@ -98,7 +104,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun DawnDuskScreen(state: DawnDuskTileState?) {
+fun DawnDuskScreen(state: DawnDuskTileState?, onRefreshClicked: () -> Unit) {
     // Add a periodic tick to refresh the countdowns every minute
     var currentTime by remember { mutableStateOf(LocalDateTime.now()) }
     LaunchedEffect(Unit) {
@@ -274,6 +280,21 @@ fun DawnDuskScreen(state: DawnDuskTileState?) {
                 Text(text = time2, style = MaterialTheme.typography.caption2)
             }
         }
+
+        Button(
+            onClick = onRefreshClicked,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 12.dp)
+                .size(24.dp),
+            colors = ButtonDefaults.secondaryButtonColors()
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_refresh),
+                contentDescription = "Refresh",
+                modifier = Modifier.size(16.dp)
+            )
+        }
     }
 }
 
@@ -285,6 +306,6 @@ fun DefaultPreview() {
             DawnDuskTileState(
                 dawnDuskDates = currentDates, locationName = "Mock Location"
             )
-        )
+        ) {}
     }
 }

@@ -3,6 +3,7 @@ package com.example.dawntodusktile.presentation.tile
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import androidx.wear.protolayout.ResourceBuilders
+import com.example.dawntodusktile.R
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.work.ExistingWorkPolicy
@@ -84,10 +85,23 @@ class DawnDuskTileService : SuspendingTileService() {
     override suspend fun resourcesRequest(
         requestParams: RequestBuilders.ResourcesRequest
     ): ResourceBuilders.Resources {
-        return ResourceBuilders.Resources.Builder().setVersion(RESOURCES_VERSION).build()
+        return ResourceBuilders.Resources.Builder()
+            .setVersion(RESOURCES_VERSION)
+            .addIdToImageMapping(
+                ID_IC_REFRESH,
+                ResourceBuilders.ImageResource.Builder()
+                    .setAndroidResourceByResId(
+                        ResourceBuilders.AndroidImageResourceByResId.Builder()
+                            .setResourceId(R.drawable.ic_refresh)
+                            .build()
+                    )
+                    .build()
+            )
+            .build()
     }
 
     companion object {
         const val TAG = "DawnDuskTileService"
+        const val ID_IC_REFRESH = "ic_refresh"
     }
 }
