@@ -27,9 +27,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,15 +47,14 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
-import androidx.compose.ui.res.painterResource
 import com.example.dawntodusktile.R
 import com.example.dawntodusktile.presentation.DawnDuskRepo.Companion.currentDates
 import com.example.dawntodusktile.presentation.theme.DawnToDuskTileTheme
 import com.example.dawntodusktile.presentation.tile.DawnDuskTileState
 import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.time.Duration.Companion.milliseconds
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,7 +70,7 @@ class MainActivity : ComponentActivity() {
                 val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
 
                 val backgroundGranted = ContextCompat.checkSelfPermission(
-                    this@MainActivity, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    this@MainActivity, Manifest.permission.ACCESS_BACKGROUND_LOCATION,
                 ) == PackageManager.PERMISSION_GRANTED
 
                 if ((fineGranted || coarseGranted) && !backgroundGranted) {
@@ -150,14 +151,14 @@ fun DawnDuskScreen(state: DawnDuskTileState?, onRefreshClicked: () -> Unit) {
     val dayColor = Color(0xFFFFEB3B)
     val trackColor = Color(0xFF333333)
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(8.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier.fillMaxSize().padding(8.dp), contentAlignment = Alignment.Center
+    ) {
         // Edge Content (Progress)
-        
+
         Canvas(modifier = Modifier.fillMaxSize()) {
             val stroke = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
-            
+
             // 1. Draw Background Track (full 180 degrees)
             drawArc(
                 color = trackColor, startAngle = 180f, sweepAngle = 180f, useCenter = false, style = stroke
@@ -180,11 +181,11 @@ fun DawnDuskScreen(state: DawnDuskTileState?, onRefreshClicked: () -> Unit) {
                 // Day transition states (2, 3, 4) - Segmented Future
                 val dawnToDuskTotal = java.time.Duration.between(dawnTodayDT, duskTodayDT).toMillis().toFloat()
                 val sunrisePoint =
-                    java.time.Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(todayDate), sunriseToday)).toMillis()
-                        .toFloat() / dawnToDuskTotal
+                    java.time.Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(todayDate), sunriseToday))
+                        .toMillis().toFloat() / dawnToDuskTotal
                 val sunsetPoint =
-                    java.time.Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(todayDate), sunsetToday)).toMillis()
-                        .toFloat() / dawnToDuskTotal
+                    java.time.Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(todayDate), sunsetToday))
+                        .toMillis().toFloat() / dawnToDuskTotal
 
                 val sunriseAngle = 180f * sunrisePoint
                 val sunsetAngle = 180f * sunsetPoint
@@ -283,10 +284,7 @@ fun DawnDuskScreen(state: DawnDuskTileState?, onRefreshClicked: () -> Unit) {
 
         Button(
             onClick = onRefreshClicked,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 12.dp)
-                .size(24.dp),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp).size(24.dp).alpha(0.5f),
             colors = ButtonDefaults.secondaryButtonColors()
         ) {
             Icon(

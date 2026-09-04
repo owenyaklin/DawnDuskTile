@@ -11,6 +11,7 @@ import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.ModifiersBuilders
 import androidx.wear.protolayout.material.Button
+import androidx.wear.protolayout.material.ButtonColors
 import androidx.wear.protolayout.material.CircularProgressIndicator
 import androidx.wear.protolayout.material.ProgressIndicatorColors
 import androidx.wear.protolayout.material.Text
@@ -43,29 +44,24 @@ private fun dawnDuskTileLayout(
     context: Context, deviceParameters: DeviceParametersBuilders.DeviceParameters, state: DawnDuskTileState
 ): EdgeContentLayout {
     if (state.dawnDuskDates.size < 3 || state.isLoading) {
-        val builder = EdgeContentLayout.Builder(deviceParameters)
-            .setResponsiveContentInsetEnabled(true)
-            .setContent(
+        val builder = EdgeContentLayout.Builder(deviceParameters).setResponsiveContentInsetEnabled(true).setContent(
                 Text.Builder(context, if (state.isLoading) "Refreshing..." else "Fetching data...")
-                    .setTypography(Typography.TYPOGRAPHY_BODY2)
-                    .build()
+                    .setTypography(Typography.TYPOGRAPHY_BODY2).build()
             )
 
         if (!state.isLoading) {
             builder.setPrimaryLabelTextContent(
                 Text.Builder(context, state.locationName.ifEmpty { "Loading..." })
-                    .setTypography(Typography.TYPOGRAPHY_CAPTION1)
-                    .setColor(ColorBuilders.argb(0xFFFDE293.toInt())).build()
+                    .setTypography(Typography.TYPOGRAPHY_CAPTION1).setColor(ColorBuilders.argb(0xFFFDE293.toInt())).build()
             )
         }
         return builder.build()
     }
 
     val now = LocalDateTime.now()
-    val solarState = SolarDataUtils.calculateSolarState(now, state.dawnDuskDates)
-        ?: return EdgeContentLayout.Builder(deviceParameters)
-            .setResponsiveContentInsetEnabled(true)
-            .build()
+    val solarState =
+        SolarDataUtils.calculateSolarState(now, state.dawnDuskDates) ?: return EdgeContentLayout.Builder(deviceParameters)
+            .setResponsiveContentInsetEnabled(true).build()
 
     val row1Text = solarState.row1Text
     val time1 = solarState.time1
@@ -99,9 +95,8 @@ private fun dawnDuskTileLayout(
         val sunrisePoint =
             Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(todayDate), sunriseToday)).toMillis()
                 .toFloat() / dawnToDuskTotal
-        val sunsetPoint =
-            Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(todayDate), sunsetToday)).toMillis()
-                .toFloat() / dawnToDuskTotal
+        val sunsetPoint = Duration.between(dawnTodayDT, LocalDateTime.of(LocalDate.parse(todayDate), sunsetToday)).toMillis()
+            .toFloat() / dawnToDuskTotal
 
         val sunriseAngle = 180f * sunrisePoint
         val sunsetAngle = 180f * sunsetPoint
@@ -128,8 +123,7 @@ private fun dawnDuskTileLayout(
                         .setThickness(DimensionBuilders.dp(8f)).setColor(ColorBuilders.argb(dawnDuskColor)).build()
                 )
                 arcBuilder.addContent(
-                    LayoutElementBuilders.ArcLine.Builder()
-                        .setLength(DimensionBuilders.degrees(sunsetAngle - sunriseAngle))
+                    LayoutElementBuilders.ArcLine.Builder().setLength(DimensionBuilders.degrees(sunsetAngle - sunriseAngle))
                         .setThickness(DimensionBuilders.dp(8f)).setColor(ColorBuilders.argb(dayColor)).build()
                 )
                 arcBuilder.addContent(
@@ -141,8 +135,7 @@ private fun dawnDuskTileLayout(
             progressAngle < sunsetAngle -> {
                 // Currently in Zone 2 (Sunrise to Sunset)
                 arcBuilder.addContent(
-                    LayoutElementBuilders.ArcLine.Builder()
-                        .setLength(DimensionBuilders.degrees(sunsetAngle - progressAngle))
+                    LayoutElementBuilders.ArcLine.Builder().setLength(DimensionBuilders.degrees(sunsetAngle - progressAngle))
                         .setThickness(DimensionBuilders.dp(8f)).setColor(ColorBuilders.argb(dayColor)).build()
                 )
                 arcBuilder.addContent(
@@ -165,46 +158,44 @@ private fun dawnDuskTileLayout(
 
     return EdgeContentLayout.Builder(deviceParameters).setResponsiveContentInsetEnabled(true).setEdgeContentThickness(8f)
         .setContent(
-            LayoutElementBuilders.Column.Builder().addContent(
-                Text.Builder(context, state.locationName).setTypography(Typography.TYPOGRAPHY_CAPTION1)
-                    .setColor(ColorBuilders.argb(0xFFFDE293.toInt())).build()
-            ).addContent(
-                Text.Builder(context, row1Text).setTypography(Typography.TYPOGRAPHY_BODY2)
-                    .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).setWeight(LayoutElementBuilders.FONT_WEIGHT_BOLD)
-                    .build()
-            ).addContent(
-                Text.Builder(context, time1).setTypography(Typography.TYPOGRAPHY_CAPTION2)
-                    .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).build()
-            ).addContent(
-                Text.Builder(context, row2Text).setTypography(Typography.TYPOGRAPHY_BODY2)
-                    .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).setWeight(LayoutElementBuilders.FONT_WEIGHT_BOLD)
-                    .build()
-            ).addContent(
-                Text.Builder(context, time2).setTypography(Typography.TYPOGRAPHY_CAPTION2)
-                    .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).build()
-            ).build()
+            LayoutElementBuilders.Column.Builder()
+                .addContent(
+                    LayoutElementBuilders.Spacer.Builder().setHeight(DimensionBuilders.dp(16f)).build()
+                )
+                .addContent(
+                    Text.Builder(context, state.locationName).setTypography(Typography.TYPOGRAPHY_CAPTION1)
+                        .setColor(ColorBuilders.argb(0xFFFDE293.toInt())).build()
+                ).addContent(
+                    Text.Builder(context, row1Text).setTypography(Typography.TYPOGRAPHY_BODY2)
+                        .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).setWeight(LayoutElementBuilders.FONT_WEIGHT_BOLD)
+                        .build()
+                ).addContent(
+                    Text.Builder(context, time1).setTypography(Typography.TYPOGRAPHY_CAPTION2)
+                        .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).build()
+                ).addContent(
+                    Text.Builder(context, row2Text).setTypography(Typography.TYPOGRAPHY_BODY2)
+                        .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).setWeight(LayoutElementBuilders.FONT_WEIGHT_BOLD)
+                        .build()
+                ).addContent(
+                    Text.Builder(context, time2).setTypography(Typography.TYPOGRAPHY_CAPTION2)
+                        .setColor(ColorBuilders.argb(0xFFDEDEDE.toInt())).build()
+                ).build()
         )
         .setSecondaryLabelTextContent(
             Button.Builder(
-                context,
-                ModifiersBuilders.Clickable.Builder()
-                    .setOnClick(
-                        ActionBuilders.LaunchAction.Builder()
-                            .setAndroidActivity(
-                                ActionBuilders.AndroidActivity.Builder()
-                                    .setPackageName(context.packageName)
+                context, ModifiersBuilders.Clickable.Builder().setOnClick(
+                        ActionBuilders.LaunchAction.Builder().setAndroidActivity(
+                                ActionBuilders.AndroidActivity.Builder().setPackageName(context.packageName)
                                     .setClassName("com.example.dawntodusktile.presentation.TransparentRefreshActivity")
                                     .build()
-                            )
-                            .build()
+                            ).build()
+                    ).build()
+            ).setIconContent(DawnDuskTileService.ID_IC_REFRESH).setSize(DimensionBuilders.dp(24f)).setButtonColors(
+                    ButtonColors(
+                        0x66333333, 0x66DEDEDE
                     )
-                    .build()
-            )
-                .setIconContent(DawnDuskTileService.ID_IC_REFRESH)
-                .setSize(DimensionBuilders.dp(24f))
-                .build()
-        )
-        .setEdgeContent(edgeContent).build()
+                ).build()
+        ).setEdgeContent(edgeContent).build()
 }
 
 @Preview(device = WearDevices.SMALL_ROUND)
